@@ -1,0 +1,1211 @@
+<title>Peta Data Center Asia Tenggara</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,500..800&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+/* Layout: survey console. Ledger column (summary, country ledger, filters, register) on the left, the chart fills the right.
+   Phones: intro, then map, then register. Status reads by shape as well as hue: solid dot, diamond, hollow ring. */
+:root{
+  --bg:#EBF0EF; --panel:#FAFCFB; --ink:#122020; --muted:#566764; --line:#D0DBD8; --hover:#E3EBE9;
+  --sea:#D3E1E5; --land:#E9EEEB; --land-idn:#FCFDFC; --coast:#93ABA6; --grid:#BFD0D4;
+  --accent:#0A5A61;
+  --op:#13845A; --uc:#C07300; --pl:#3150C4; --an:#5BA9E7;
+  --shadow:0 1px 3px rgb(10 32 32 / .2); --shadow-lg:0 12px 32px rgb(10 32 32 / .22);
+  --f-display:"Archivo", "Arial Narrow", system-ui, sans-serif;
+  --f-body:"IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --f-mono:"IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#0C1315; --panel:#111A1D; --ink:#E1EBE8; --muted:#8B9E9A; --line:#223139; --hover:#1A262A;
+    --sea:#091114; --land:#152128; --land-idn:#1C2B32; --coast:#365159; --grid:#18282E;
+    --accent:#63C6C0;
+    --op:#2DAE78; --uc:#C27D1F; --pl:#7484E6; --an:#266595;
+    --shadow:0 1px 3px rgb(0 0 0 / .55); --shadow-lg:0 12px 32px rgb(0 0 0 / .6);
+    color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0C1315; --panel:#111A1D; --ink:#E1EBE8; --muted:#8B9E9A; --line:#223139; --hover:#1A262A;
+  --sea:#091114; --land:#152128; --land-idn:#1C2B32; --coast:#365159; --grid:#18282E;
+  --accent:#63C6C0;
+  --op:#2DAE78; --uc:#C27D1F; --pl:#7484E6; --an:#266595;
+  --shadow:0 1px 3px rgb(0 0 0 / .55); --shadow-lg:0 12px 32px rgb(0 0 0 / .6);
+  color-scheme:dark;
+}
+
+html,body{height:100%}
+body{background:var(--bg);color:var(--ink);font:14px/1.5 var(--f-body)}
+*,*::before,*::after{box-sizing:border-box}
+button,input,select{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.vh{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+
+.app{display:grid;grid-template-columns:minmax(340px,440px) minmax(0,1fr);height:100%}
+.side{overflow-y:auto;background:var(--panel);border-right:1px solid var(--line);min-width:0}
+.intro{padding:24px 20px 18px;display:grid;gap:14px;min-width:0}
+.intro>*{min-width:0}
+.ledger{padding:0 20px 28px}
+.mapwrap{position:relative;min-width:0;min-height:0}
+#map{position:absolute;inset:0;background:var(--sea)}
+
+/* ---------- intro ---------- */
+.eyebrow{margin:0;font:500 11.5px/1.3 var(--f-mono);letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+h1{margin:0;font-family:var(--f-display);font-weight:780;font-stretch:112%;font-size:clamp(26px,3.2vw,32px);line-height:1.04;letter-spacing:-.012em;text-wrap:balance}
+.lede{margin:0;color:var(--muted);max-width:60ch}
+
+.summary{display:grid;gap:10px}
+.bar{display:flex;gap:2px;height:8px}
+.bar span{display:block;height:100%;border-radius:2px;transition:width .35s ease;min-width:0}
+.b-op{background:var(--op)} .b-uc{background:var(--uc)} .b-pl{background:var(--pl)}
+.st-rows{display:grid;gap:2px}
+.st{display:grid;grid-template-columns:22px 1fr auto;grid-template-areas:"g l n" "g m m";align-items:center;column-gap:10px;
+  text-align:left;background:none;border:1px solid transparent;border-radius:6px;padding:7px 8px;cursor:pointer}
+.st:hover{background:var(--hover)}
+.st .g{grid-area:g;justify-self:center}
+.st-l{grid-area:l;font-weight:600}
+.st-n{grid-area:n;font:600 18px/1 var(--f-mono);font-variant-numeric:tabular-nums}
+.st-mw{grid-area:m;font:12px/1.3 var(--f-mono);color:var(--muted);font-variant-numeric:tabular-nums}
+.st[aria-pressed="false"]{opacity:.45}
+.st[aria-pressed="false"] .st-l{text-decoration:line-through;text-decoration-thickness:1px}
+.fine{margin:0;font-size:12px;color:var(--muted);line-height:1.45}
+
+/* ---------- country ledger ---------- */
+.ctry h2{margin:6px 0 8px;font:700 13px/1.3 var(--f-display);font-stretch:108%;letter-spacing:.04em;text-transform:uppercase}
+.ctry-scroll{overflow-x:auto}
+.ctry table{width:100%;border-collapse:collapse;font-size:12.5px;font-variant-numeric:tabular-nums}
+.ctry th{font:500 10.5px/1.2 var(--f-mono);letter-spacing:.05em;text-transform:uppercase;color:var(--muted);text-align:right;padding:0 0 6px 6px;white-space:nowrap}
+.ctry th:first-child{text-align:left;padding-left:0}
+.ctry td{padding:5px 0 5px 6px;text-align:right;border-top:1px solid var(--line);white-space:nowrap}
+.ctry td:first-child{text-align:left;padding-left:0;white-space:normal}
+.ctry tr.cmp-first td{border-top:1px solid var(--muted)}
+.crow{cursor:pointer}
+.crow:hover td{background:var(--hover)}
+.crow.on td{background:var(--hover);font-weight:600}
+.cname{display:flex;align-items:center;gap:7px}
+.iso{font:600 10px/1 var(--f-mono);letter-spacing:.05em;padding:3px 4px;border-radius:3px;border:1px solid var(--line);color:var(--muted)}
+.cbar{display:flex;gap:2px;height:4px;margin-top:4px}
+.cbar span{display:block;border-radius:2px;height:100%}
+.ctry .c-op{color:var(--ink)} .ctry .c-uc{color:var(--ink)} .ctry .c-pl{color:var(--ink)}
+.th-dot{display:inline-block;width:7px;height:7px;border-radius:50%;margin-right:4px;vertical-align:0}
+
+/* ---------- status glyphs ---------- */
+.g{display:inline-block;flex:none;width:12px;height:12px;border-radius:50%}
+.g-op{background:var(--op);box-shadow:0 0 0 2px var(--panel)}
+.g-uc{background:var(--uc);border-radius:2px;transform:rotate(45deg) scale(.82);box-shadow:0 0 0 2px var(--panel)}
+.g-pl{background:color-mix(in srgb,var(--pl) 14%,var(--panel));border:2px solid var(--pl)}
+.g.s1{width:10px;height:10px} .g.s2{width:14px;height:14px} .g.s3{width:20px;height:20px}
+.g-pl.s3{border-style:dashed}
+.g.eks{box-shadow:0 0 0 2px var(--panel),0 0 0 5px color-mix(in srgb,var(--uc) 60%,transparent)}
+
+/* ---------- filters ---------- */
+.filters{position:sticky;top:0;z-index:30;background:var(--panel);padding:12px 20px 10px;border-block:1px solid var(--line);display:grid;gap:8px}
+.search{position:relative}
+.search input{width:100%;padding:9px 12px 9px 34px;border:1px solid var(--line);border-radius:7px;background:var(--bg)}
+.search svg{position:absolute;left:11px;top:50%;transform:translateY(-50%);width:15px;height:15px;stroke:var(--muted);fill:none}
+.sel-row{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+select{width:100%;min-width:0;padding:8px 10px;border:1px solid var(--line);border-radius:7px;background:var(--bg)}
+.resultline{display:flex;justify-content:space-between;align-items:center;gap:8px;font-size:12.5px;color:var(--muted);min-height:24px}
+.linkbtn{background:none;border:0;padding:2px 0;color:var(--accent);font-weight:600;cursor:pointer;text-decoration:underline;text-underline-offset:2px}
+
+/* ---------- register ---------- */
+.nat{padding-top:22px}
+.nat-h{display:flex;align-items:baseline;gap:10px;margin:0;padding-bottom:4px;border-bottom:2px solid var(--ink);
+  font:780 17px/1.2 var(--f-display);font-stretch:108%}
+.nat-h .n{margin-left:auto;font:500 12px/1 var(--f-mono);color:var(--muted)}
+.grp{padding-top:14px}
+.grp-h{display:flex;align-items:center;gap:10px;margin:0 0 6px;font-size:13px;font-weight:600}
+.code{font:600 11px/1 var(--f-mono);letter-spacing:.06em;padding:4px 6px;border-radius:4px;background:var(--ink);color:var(--panel)}
+.grp-n{flex:1;min-width:0}
+.grp-c{font:500 12px/1 var(--f-mono);color:var(--muted);font-variant-numeric:tabular-nums}
+.mini{display:flex;gap:2px;height:3px;margin:0 0 4px}
+.mini span{border-radius:2px}
+.mini span:nth-child(1){background:var(--op)} .mini span:nth-child(2){background:var(--uc)} .mini span:nth-child(3){background:var(--pl)}
+.grp ul{list-style:none;margin:0;padding:0}
+.it{width:100%;display:grid;grid-template-columns:20px minmax(0,1fr) auto;align-items:center;column-gap:10px;text-align:left;
+  background:none;border:0;border-bottom:1px solid var(--line);padding:8px 4px;cursor:pointer}
+.it:hover,.it.active{background:var(--hover)}
+.it .g{justify-self:center}
+.it-t{min-width:0;display:grid}
+.it-t b{font-weight:600;font-size:13.5px;line-height:1.3;overflow-wrap:anywhere}
+.it-t small{font-size:12px;color:var(--muted);line-height:1.35;overflow-wrap:anywhere}
+.it-mw{font:500 12px/1.2 var(--f-mono);color:var(--muted);text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+.tag{display:inline-block;margin-left:6px;font:600 10px/1 var(--f-mono);letter-spacing:.04em;text-transform:uppercase;vertical-align:1px;white-space:nowrap}
+.tag-eks{color:var(--uc)} .tag-ai{color:var(--accent)}
+.empty{padding:28px 4px;color:var(--muted)}
+
+.extra{margin-top:28px;padding-top:6px;border-top:2px solid var(--ink);display:grid;gap:4px}
+.extra h2{margin:18px 0 6px;font:700 13px/1.3 var(--f-display);font-stretch:108%;letter-spacing:.04em;text-transform:uppercase}
+.extra ul{list-style:none;margin:0;padding:0;display:grid;gap:10px}
+.extra li{display:grid;grid-template-columns:20px minmax(0,1fr);column-gap:10px;font-size:13px}
+.extra li .g{margin-top:4px;justify-self:center}
+.extra li p{margin:2px 0 0;color:var(--muted);font-size:12.5px}
+.extra .notes{margin:0;color:var(--muted);font-size:12.5px;max-width:62ch}
+.extra .notes + .notes{margin-top:8px}
+a{color:var(--accent);text-underline-offset:2px}
+
+/* ---------- map chrome ---------- */
+.views{position:absolute;z-index:900;top:12px;left:12px;right:60px;display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;padding-bottom:4px}
+.views::-webkit-scrollbar{display:none}
+.views button{flex:none;border:1px solid var(--line);background:var(--panel);border-radius:999px;padding:6px 12px;
+  font-size:12.5px;font-weight:600;cursor:pointer;box-shadow:var(--shadow);white-space:nowrap}
+.views button:hover{background:var(--hover)}
+.views button[aria-current="true"]{background:var(--ink);color:var(--panel);border-color:var(--ink)}
+.legend{position:absolute;z-index:900;left:12px;bottom:12px;max-width:min(330px,calc(100% - 24px));background:var(--panel);
+  border:1px solid var(--line);border-radius:8px;box-shadow:var(--shadow);font-size:12px}
+.legend summary{cursor:pointer;padding:8px 12px;font-weight:600;list-style:none;display:flex;justify-content:space-between;gap:12px}
+.legend summary::-webkit-details-marker{display:none}
+.legend summary::after{content:"–";color:var(--muted)}
+.legend:not([open]) summary::after{content:"+"}
+.lg-body{padding:0 12px 10px;display:grid;gap:7px}
+.lg-row{display:flex;flex-wrap:wrap;align-items:center;gap:6px 14px}
+.lg-row span{display:inline-flex;align-items:center;gap:6px}
+.lg-sizes .g{background:var(--muted);box-shadow:none}
+.lg-cl{display:inline-block;width:20px;height:20px;border-radius:50%;background:conic-gradient(var(--op) 0 60%,var(--uc) 60% 80%,var(--pl) 80% 100%);position:relative}
+.lg-cl::after{content:"";position:absolute;inset:4px;border-radius:50%;background:var(--panel)}
+.attrib{color:var(--muted);font-size:11px;line-height:1.35;border-top:1px solid var(--line);padding-top:6px}
+.map-msg{position:absolute;z-index:950;left:50%;top:50%;transform:translate(-50%,-50%);max-width:320px;padding:14px 16px;
+  background:var(--panel);border:1px solid var(--line);border-radius:8px;box-shadow:var(--shadow-lg);text-align:center;color:var(--muted)}
+
+/* ---------- map layers ---------- */
+.land{fill:var(--land);stroke:var(--coast);stroke-width:.6px;fill-opacity:1;stroke-opacity:1}
+.land.idn{fill:var(--land-idn);stroke-width:.8px}
+.grat{stroke:var(--grid);stroke-width:1px;fill:none}
+.leg{stroke:var(--muted)}
+.dc{display:grid;place-items:center}
+.dc .g{cursor:pointer}
+.clw{display:grid;place-items:center}
+.cl{width:100%;height:100%;border-radius:50%;display:grid;place-items:center;box-shadow:var(--shadow);
+  background:conic-gradient(var(--op) 0 var(--a),var(--uc) var(--a) var(--b),var(--pl) var(--b) 100%)}
+.cl span{width:calc(100% - 9px);height:calc(100% - 9px);border-radius:50%;background:var(--panel);display:grid;place-items:center;
+  font:600 12px/1 var(--f-mono);color:var(--ink);font-variant-numeric:tabular-nums}
+.lbl{pointer-events:none}
+.lbl span{position:absolute;left:0;top:0;white-space:nowrap;color:var(--muted);text-shadow:0 0 3px var(--land-idn),0 0 3px var(--land-idn)}
+.lbl-island span{transform:translate(-50%,-50%);font:700 11px/1 var(--f-display);font-stretch:125%;letter-spacing:.32em;opacity:.7}
+.lbl-city span{transform:translate(9px,-50%);font:500 12px/1 var(--f-body);color:var(--ink);opacity:.75}
+.lbl-kaw span{transform:translate(-50%,14px);font:500 10.5px/1 var(--f-mono);letter-spacing:.04em;text-transform:uppercase}
+#map[data-zb="0"] .lbl-city,#map[data-zb="0"] .lbl-kaw,
+#map[data-zb="1"] .lbl-kaw,#map[data-zb="2"] .lbl-kaw,#map[data-zb="2"] .lbl-island,
+#map[data-zb="3"] .lbl-island,#map[data-zb="3"] .lbl-city{display:none}
+
+.pop{display:grid;gap:4px;font-family:var(--f-body)}
+.pop-st{display:flex;align-items:center;gap:8px;font:600 11px/1.2 var(--f-mono);letter-spacing:.05em;text-transform:uppercase}
+.pop-st.pop-op{color:var(--op)} .pop-st.pop-uc{color:var(--uc)} .pop-st.pop-pl{color:var(--pl)}
+.pop h3{margin:2px 0 0;font:700 16px/1.2 var(--f-display);font-stretch:104%;text-wrap:balance}
+.pop .pop-opr{margin:0;color:var(--muted);font-size:12.5px}
+.pop dl{margin:6px 0 0;display:grid;gap:3px}
+.pop dl div{display:grid;grid-template-columns:78px minmax(0,1fr);gap:8px;font-size:12.5px}
+.pop dt{color:var(--muted)} .pop dd{margin:0;font-variant-numeric:tabular-nums;overflow-wrap:anywhere}
+.pop .code{font-size:10px;padding:3px 5px}
+.pop-note{margin:6px 0 0;font-size:12.5px;line-height:1.45}
+.pop-foot{margin:6px 0 0;padding-top:6px;border-top:1px solid var(--line);font-size:11.5px;color:var(--muted)}
+
+/* ---------- Leaflet core (inlined) ---------- */
+.leaflet-pane,.leaflet-marker-icon,.leaflet-marker-shadow,.leaflet-pane>svg,.leaflet-pane>canvas,.leaflet-zoom-box,.leaflet-layer{position:absolute;left:0;top:0}
+.leaflet-container{overflow:hidden;-webkit-tap-highlight-color:transparent;font-family:var(--f-body);font-size:12px;line-height:1.5;outline-offset:1px}
+.leaflet-marker-icon,.leaflet-marker-shadow{user-select:none;-webkit-user-select:none;-webkit-user-drag:none;display:block}
+.leaflet-container .leaflet-overlay-pane svg{max-width:none!important;max-height:none!important}
+.leaflet-container.leaflet-touch-zoom{touch-action:pan-x pan-y}
+.leaflet-container.leaflet-touch-drag{touch-action:none;touch-action:pinch-zoom}
+.leaflet-container.leaflet-touch-drag.leaflet-touch-zoom{touch-action:none}
+.leaflet-zoom-box{width:0;height:0;box-sizing:border-box;z-index:800;border:2px dotted var(--accent)}
+.leaflet-pane{z-index:400}.leaflet-tile-pane{z-index:200}.leaflet-overlay-pane{z-index:400}.leaflet-shadow-pane{z-index:500}
+.leaflet-marker-pane{z-index:600}.leaflet-tooltip-pane{z-index:650}.leaflet-popup-pane{z-index:700}
+.leaflet-map-pane canvas{z-index:100}.leaflet-map-pane svg{z-index:200}
+.leaflet-control{position:relative;z-index:800;pointer-events:auto;float:left;clear:both}
+.leaflet-top,.leaflet-bottom{position:absolute;z-index:1000;pointer-events:none}
+.leaflet-top{top:0}.leaflet-right{right:0}.leaflet-bottom{bottom:0}.leaflet-left{left:0}
+.leaflet-right .leaflet-control{float:right}
+.leaflet-top .leaflet-control{margin-top:12px}.leaflet-right .leaflet-control{margin-right:12px}
+.leaflet-fade-anim .leaflet-popup{opacity:0;transition:opacity .2s linear}
+.leaflet-fade-anim .leaflet-map-pane .leaflet-popup{opacity:1}
+.leaflet-zoom-animated{transform-origin:0 0}
+svg.leaflet-zoom-animated{will-change:transform}
+.leaflet-zoom-anim .leaflet-zoom-animated{transition:transform .25s cubic-bezier(0,0,.25,1)}
+.leaflet-zoom-anim .leaflet-zoom-hide{visibility:hidden}
+.leaflet-interactive{cursor:pointer}
+.leaflet-grab{cursor:grab}
+.leaflet-popup-pane,.leaflet-control{cursor:auto}
+.leaflet-dragging .leaflet-grab,.leaflet-dragging .leaflet-grab .leaflet-interactive,.leaflet-dragging .leaflet-marker-draggable{cursor:grabbing}
+.leaflet-marker-icon,.leaflet-marker-shadow,.leaflet-image-layer,.leaflet-pane>svg path,.leaflet-tile-container{pointer-events:none}
+.leaflet-marker-icon.leaflet-interactive,.leaflet-image-layer.leaflet-interactive,.leaflet-pane>svg path.leaflet-interactive{pointer-events:auto}
+.leaflet-bar{box-shadow:var(--shadow);border-radius:8px;border:1px solid var(--line);overflow:hidden}
+.leaflet-bar a{background:var(--panel);border-bottom:1px solid var(--line);width:34px;height:34px;line-height:32px;display:block;text-align:center;text-decoration:none;color:var(--ink)}
+.leaflet-bar a:hover,.leaflet-bar a:focus{background:var(--hover)}
+.leaflet-bar a:last-child{border-bottom:none}
+.leaflet-bar a.leaflet-disabled{cursor:default;color:var(--muted);opacity:.5}
+.leaflet-control-zoom-in,.leaflet-control-zoom-out{font:600 19px/32px var(--f-mono)}
+.leaflet-popup{position:absolute;text-align:center;margin-bottom:20px}
+.leaflet-popup-content-wrapper{padding:1px;text-align:left;border-radius:10px}
+.leaflet-popup-content{margin:14px 18px 14px 16px;line-height:1.35;font-size:13px;min-height:1px}
+.leaflet-popup-tip-container{width:40px;height:20px;position:absolute;left:50%;margin-top:-1px;margin-left:-20px;overflow:hidden;pointer-events:none}
+.leaflet-popup-tip{width:17px;height:17px;padding:1px;margin:-10px auto 0;pointer-events:auto;transform:rotate(45deg)}
+.leaflet-popup-content-wrapper,.leaflet-popup-tip{background:var(--panel);color:var(--ink);box-shadow:var(--shadow-lg)}
+.leaflet-container a.leaflet-popup-close-button{position:absolute;top:4px;right:4px;border:none;text-align:center;width:26px;height:26px;font:18px/26px var(--f-body);color:var(--muted);text-decoration:none;background:transparent}
+.leaflet-container a.leaflet-popup-close-button:hover{color:var(--ink)}
+.leaflet-cluster-anim .leaflet-marker-icon,.leaflet-cluster-anim .leaflet-marker-shadow{transition:transform .3s ease-out,opacity .3s ease-in}
+.leaflet-cluster-spider-leg{transition:stroke-dashoffset .3s ease-out,stroke-opacity .3s ease-in}
+
+@media (prefers-reduced-motion: reduce){
+  .bar span,.leaflet-zoom-anim .leaflet-zoom-animated,.leaflet-cluster-anim .leaflet-marker-icon{transition:none!important}
+}
+
+/* ---------- multi-select ---------- */
+.ms-row{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:8px}
+.ms{position:relative;min-width:0;grid-column:span 2}
+.ms[data-k="neg"],.ms[data-k="area"]{grid-column:span 3}
+.ms-btn{width:100%;display:grid;grid-template-columns:minmax(0,1fr) 12px;grid-template-areas:"k c" "v c";align-items:center;column-gap:6px;
+  text-align:left;padding:6px 9px 7px 10px;border:1px solid var(--line);border-radius:7px;background:var(--bg);cursor:pointer}
+.ms-btn:hover{border-color:var(--muted)}
+.ms-k{grid-area:k;font:500 10px/1.3 var(--f-mono);letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.ms-v{grid-area:v;font-size:13px;line-height:1.35;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ms-ch{grid-area:c;width:12px;height:12px;stroke:var(--muted);stroke-width:1.6;fill:none;transition:transform .15s}
+.ms-btn[aria-expanded="true"] .ms-ch{transform:rotate(180deg)}
+.ms.on .ms-btn{border-color:var(--accent);box-shadow:inset 0 0 0 1px var(--accent);background:var(--panel)}
+.ms.on .ms-v{font-weight:600}
+.ms-pop{position:absolute;z-index:40;top:calc(100% + 4px);left:0;width:max(100%,250px);max-width:calc(100vw - 32px);max-height:min(380px,62vh);
+  display:grid;grid-template-rows:auto minmax(0,1fr) auto;background:var(--panel);border:1px solid var(--line);border-radius:9px;box-shadow:var(--shadow-lg)}
+.ms-pop[hidden]{display:none}
+.ms[data-k="area"] .ms-pop,.ms[data-k="ai"] .ms-pop{left:auto;right:0}
+.ms-q{margin:8px 8px 2px;padding:7px 10px;border:1px solid var(--line);border-radius:6px;background:var(--bg);min-width:0}
+.ms-list{overflow-y:auto;padding:4px;overscroll-behavior:contain}
+.ms-g,.ms-opt{display:grid;grid-template-columns:16px minmax(0,1fr) auto;align-items:center;column-gap:9px;padding:6px 8px;border-radius:5px;cursor:pointer}
+.ms-g[hidden],.ms-opt[hidden]{display:none}
+.ms-g{margin-top:6px;font:600 10.5px/1.3 var(--f-mono);letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.ms-g:first-child{margin-top:0}
+.ms-opt{font-size:13px;line-height:1.3}
+.ms-g:hover,.ms-opt:hover{background:var(--hover)}
+.ms-opt.zero{color:var(--muted)}
+.ms input[type=checkbox]{margin:0;width:15px;height:15px;accent-color:var(--accent)}
+.ms-n{font:500 11.5px/1 var(--f-mono);color:var(--muted);font-variant-numeric:tabular-nums}
+.ms-foot{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:8px 10px;border-top:1px solid var(--line)}
+.ms-done{border:0;border-radius:6px;padding:6px 14px;background:var(--ink);color:var(--panel);font-weight:600;cursor:pointer}
+
+/* ---------- sorotan (MW per tahap) ---------- */
+.hl{padding:18px 20px 8px;display:grid;gap:12px;min-width:0}
+.hl-k{margin:0;font:500 11px/1.3 var(--f-mono);letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.hl h2{margin:3px 0 0;font:780 21px/1.15 var(--f-display);font-stretch:108%;text-wrap:balance;overflow-wrap:anywhere}
+.hl-sub{margin:4px 0 0;font-size:12.5px;color:var(--muted);overflow-wrap:anywhere}
+.hl-total{display:flex;align-items:baseline;flex-wrap:wrap;gap:2px 10px}
+.hl-num{font:780 44px/1 var(--f-display);font-stretch:104%;letter-spacing:-.015em}
+.hl-unit{font-size:12.5px;color:var(--muted);max-width:24ch;line-height:1.35}
+.hl-bar{display:flex;gap:2px;height:10px}
+.hl-bar span{display:block;height:100%;border-radius:2px;transition:width .35s ease;min-width:0}
+.b-an{background:var(--an)} .b-lp{background:var(--pl)}
+.hl-bar span[hidden]{display:none}
+.hl-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.tile{--c:var(--op);position:relative;display:flex;flex-direction:column;align-items:stretch;gap:2px;min-width:0;text-align:left;
+  padding:11px 12px 12px 15px;border:1px solid var(--line);border-radius:8px;cursor:pointer;color:var(--ink);overflow:hidden;
+  background:repeating-linear-gradient(135deg,transparent 0 9px,color-mix(in srgb,var(--c) 8%,transparent) 9px 18px),color-mix(in srgb,var(--c) 10%,var(--panel))}
+.tile::before{content:"";position:absolute;left:0;top:0;bottom:0;width:4px;background:var(--c)}
+.tile:hover{border-color:color-mix(in srgb,var(--c) 60%,var(--line))}
+.tile[aria-pressed="false"]{background:var(--panel);opacity:.55}
+.tile[aria-pressed="false"] .t-k span{text-decoration:line-through;text-decoration-thickness:1px}
+.t-an{--c:var(--an)} .t-lp{--c:var(--pl)} .t-uc{--c:var(--uc)} .t-op{--c:var(--op)}
+.t-k{display:flex;align-items:flex-start;gap:7px;font:600 10.5px/1.3 var(--f-mono);letter-spacing:.06em;text-transform:uppercase;min-height:28px}
+.t-k .g{margin-top:1px}
+.t-v{margin-top:4px;font:780 27px/1.05 var(--f-display);font-stretch:104%;letter-spacing:-.01em}
+.t-u{font:500 9.5px/1.3 var(--f-mono);letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.t-n{margin-top:6px;font-size:12px;line-height:1.35;color:var(--muted)}
+.t-meter{margin-top:9px;height:6px;border-radius:3px;background:color-mix(in srgb,var(--c) 24%,var(--panel));overflow:hidden}
+.t-meter span{display:block;height:100%;border-radius:3px;background:var(--c);transition:width .35s ease}
+.t-run{margin-top:4px;font-size:12px;line-height:1.35;font-weight:600}
+.ledger .ctry{padding-top:20px}
+.sh{display:grid;gap:9px;padding:12px 14px 12px;border:1px solid var(--line);border-radius:8px;background:var(--bg);min-width:0}
+.sh[hidden],.sh-live[hidden],.sh-empty[hidden]{display:none}
+.sh-h{margin:0;font:600 10.5px/1.35 var(--f-mono);letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.sh-live{display:grid;grid-template-columns:auto minmax(0,1fr);align-items:baseline;column-gap:10px;row-gap:6px}
+.sh-pct{font:780 30px/1 var(--f-display);font-stretch:104%;letter-spacing:-.01em}
+.sh-txt{font-size:12.5px;line-height:1.35}
+.sh-meter{grid-column:1/-1;height:6px;border-radius:3px;background:color-mix(in srgb,var(--op) 24%,var(--panel));overflow:hidden}
+.sh-meter span{display:block;height:100%;border-radius:3px;background:var(--op);transition:width .35s ease}
+.sh-t{width:100%;border-collapse:collapse;font-size:12.5px;font-variant-numeric:tabular-nums}
+.sh-t th{font:500 10px/1.2 var(--f-mono);letter-spacing:.05em;text-transform:uppercase;color:var(--muted);text-align:right;padding:0 0 5px 6px;white-space:nowrap}
+.sh-t th:first-child{text-align:left;padding-left:0}
+.sh-t td{padding:5px 0 5px 6px;text-align:right;border-top:1px solid var(--line);white-space:nowrap}
+.sh-t td:first-child{text-align:left;padding-left:0;white-space:normal}
+.sh-t td:first-child .g{margin-right:7px;vertical-align:-1px}
+.sh-t tr.tot td{font-weight:600;border-top:1px solid var(--muted)}
+.sh-note{margin:0;font-size:11.5px;line-height:1.4;color:var(--muted)}
+.sh-empty{margin:0;font-size:12.5px;color:var(--muted)}
+@media (prefers-reduced-motion: reduce){ .hl-bar span,.t-meter span,.sh-meter span,.ms-ch{transition:none} }
+
+/* ---------- phones ---------- */
+@media (max-width:860px){
+  html,body{height:auto}
+  .app{display:flex;flex-direction:column;height:auto}
+  .side{display:contents}
+  .intro{order:1;background:var(--panel);padding:20px 16px 16px}
+  .mapwrap{order:2;height:62vh;min-height:380px;border-block:1px solid var(--line)}
+  .filters{order:3;top:env(safe-area-inset-top,0px);padding:12px 16px 10px}
+  .hl{order:4;background:var(--panel);padding:16px 16px 8px}
+  .ledger{order:5;background:var(--panel);padding:0 16px 28px}
+  .views button{padding:5px 10px;font-size:12px}
+}
+</style>
+
+<div class="app">
+  <aside class="side">
+    <header class="intro">
+      <p class="eyebrow">Status per 2 Oktober 2026 · <span id="n-total"></span> fasilitas · 11 negara</p>
+      <h1>Data Center Asia Tenggara</h1>
+      <p class="lede">Fasilitas yang beroperasi, sedang dibangun, dan masih direncanakan. Indonesia dirinci sampai colocation dan edge kecil; negara lain memuat proyek skala besar dari data regional, dengan India dan negara Teluk sebagai pembanding.</p>
+    </header>
+
+    <div class="filters" role="search" aria-label="Saring fasilitas">
+      <div class="search">
+        <svg viewBox="0 0 24 24" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><path d="M20 20l-3.5-3.5"></path></svg>
+        <label for="q" class="vh">Cari fasilitas</label>
+        <input id="q" type="search" placeholder="Cari nama, operator, investor, klien, kota" autocomplete="off">
+      </div>
+      <div class="ms-row">
+        <div class="ms" data-k="neg"></div>
+        <div class="ms" data-k="area"></div>
+        <div class="ms" data-k="tipe"></div>
+        <div class="ms" data-k="tier"></div>
+        <div class="ms" data-k="ai"></div>
+      </div>
+      <div class="resultline"><span id="rcount" aria-live="polite"></span><button type="button" class="linkbtn" id="reset" hidden>Hapus semua filter</button></div>
+    </div>
+
+    <section class="hl" aria-labelledby="hl-title">
+      <div>
+        <p class="hl-k">Sorotan pilihan</p>
+        <h2 id="hl-title">Semua negara &amp; wilayah</h2>
+        <p class="hl-sub" id="hl-sub"></p>
+      </div>
+      <div class="hl-total"><span class="hl-num" id="hl-total"></span><span class="hl-unit" id="hl-unit"></span></div>
+      <div class="hl-bar" id="hl-bar" aria-hidden="true"><span class="b-an"></span><span class="b-lp"></span><span class="b-uc"></span><span class="b-op"></span></div>
+      <div class="hl-grid">
+        <button type="button" class="tile t-an" id="t-an" data-b="an" aria-pressed="true">
+          <span class="t-k"><i class="g g-pl s1" aria-hidden="true"></i><span>Diumumkan</span></span>
+          <span class="t-v" id="v-an"></span><span class="t-u">kapasitas rencana</span>
+          <span class="t-n" id="n-an"></span>
+        </button>
+        <button type="button" class="tile t-lp" id="t-lp" data-b="lp" aria-pressed="true">
+          <span class="t-k"><i class="g g-pl s1" aria-hidden="true"></i><span>Lahan &amp; perizinan</span></span>
+          <span class="t-v" id="v-lp"></span><span class="t-u">kapasitas rencana</span>
+          <span class="t-n" id="n-lp"></span>
+        </button>
+        <button type="button" class="tile t-uc" id="t-uc" data-b="uc" aria-pressed="true">
+          <span class="t-k"><i class="g g-uc s1" aria-hidden="true"></i><span>Konstruksi</span></span>
+          <span class="t-v" id="v-uc"></span><span class="t-u">kapasitas rencana</span>
+          <span class="t-n" id="n-uc"></span>
+        </button>
+        <button type="button" class="tile t-op" id="t-op" data-b="op" aria-pressed="true">
+          <span class="t-k"><i class="g g-op s1" aria-hidden="true"></i><span>Beroperasi</span></span>
+          <span class="t-v" id="v-op"></span><span class="t-u">kapasitas rencana</span>
+          <span class="t-meter" aria-hidden="true"><span id="meter-op"></span></span>
+          <span class="t-run" id="run-op"></span>
+          <span class="t-n" id="n-op"></span>
+        </button>
+      </div>
+      <div class="sh" id="sh" hidden>
+        <h3 class="sh-h" id="sh-h"></h3>
+        <div class="sh-live" id="sh-live">
+          <span class="sh-pct" id="sh-live-pct"></span><span class="sh-txt" id="sh-live-txt"></span>
+          <span class="sh-meter" aria-hidden="true"><span id="sh-live-bar"></span></span>
+        </div>
+        <table class="sh-t">
+          <thead><tr><th scope="col">Tahap</th><th scope="col">Pilihan</th><th scope="col">Total</th><th scope="col">Porsi</th></tr></thead>
+          <tbody id="sh-body"></tbody>
+        </table>
+        <p class="sh-note" id="sh-note"></p>
+      </div>
+      <p class="sh-empty" id="sh-empty">Pilih wilayah atau negara untuk melihat porsinya terhadap total nasional.</p>
+      <p class="fine">Klik kotak tahap untuk menampilkan atau menyembunyikannya di peta dan daftar. Kapasitas rencana adalah beban IT yang diungkap tiap proyek; pada fasilitas beroperasi, meter menunjukkan bagian yang sudah terkonfirmasi berjalan. Di peta, diumumkan serta lahan &amp; perizinan sama-sama bertanda lingkaran biru (perencanaan). Diumumkan juga mencakup rencana umum dan proyek yang ditunda; lahan &amp; perizinan mencakup proyek yang pendanaannya sudah tuntas.</p>
+    </section>
+
+    <div class="ledger">
+      <section class="ctry" aria-label="Perbandingan negara">
+        <h2>Per negara</h2>
+        <div class="ctry-scroll">
+          <table>
+            <thead><tr>
+              <th scope="col">Negara</th><th scope="col">Fasilitas</th>
+              <th scope="col"><i class="th-dot b-op"></i>Beroperasi</th><th scope="col"><i class="th-dot b-uc"></i>Dibangun</th><th scope="col"><i class="th-dot b-pl"></i>Rencana</th>
+            </tr></thead>
+            <tbody id="ctry-body"></tbody>
+          </table>
+        </div>
+        <p class="fine" style="margin-top:8px">Dalam MW. Klik baris untuk menambah atau melepas negara dari filter. Jumlah fasilitas Indonesia lebih tinggi karena ikut memuat colocation dan edge kecil.</p>
+      </section>
+
+      <div id="list"></div>
+
+      <section class="extra" aria-label="Catatan">
+        <h2>Belum ada titik lokasi publik</h2>
+        <ul id="unloc"></ul>
+        <h2>Dibatalkan</h2>
+        <ul id="cancel"></ul>
+        <h2>Unduh data</h2>
+        <p class="notes">Master data yang sama dengan peta ini: <a href="data/data-center-regional-okt2026.csv" download>CSV semua negara</a> · <a href="data/data-center-indonesia-okt2026.csv" download>CSV Indonesia</a> · <a href="data/dc_data.json">JSON</a>.</p>
+        <h2>Cara membaca</h2>
+        <p class="notes"><strong>Operasional</strong> berarti sudah melayani pelanggan, termasuk yang beroperasi terbatas; halo oranye menandai kampus yang beroperasi sambil menambah gedung. <strong>Konstruksi</strong> mencakup proyek yang sedang dibangun atau dalam commissioning. <strong>Perencanaan</strong> mencakup proyek yang baru diumumkan, di tahap lahan dan perizinan, sudah tuntas pendanaannya tetapi belum dibangun, atau ditunda. Tahap rinci ada di kartu detail.</p>
+        <p class="notes"><strong>Sinyal AI</strong> menunjukkan apakah ada bukti fasilitas dirancang atau dipakai untuk beban kerja AI. <strong>Kekuatan bukti</strong> menunjukkan seberapa banyak sumber publik yang menopang data proyek. Estimasi biaya listrik dan capex berasal dari data regional dan bukan angka resmi operator.</p>
+        <p class="notes">Titik di peta adalah perkiraan. Di Indonesia posisinya mengikuti alamat di tingkat kawasan. File regional tidak memuat koordinat, jadi titiknya ditempatkan di kawasan yang disebut dalam nama proyek (misalnya Sedenak, Cyberjaya, Loyang, Amata City) atau, bila tidak ada, di sekitar pusat pasarnya. Kode tiga huruf seperti CGK, JHB, atau BKK adalah kode metro bergaya bandara yang lazim dipakai industri.</p>
+        <h2>Sumber</h2>
+        <p class="notes">Indonesia: direktori fasilitas dari <a href="https://www.datacentermap.com/indonesia/" target="_blank" rel="noopener">Data Center Map</a>, status proyek dari <a href="https://arusgrid.com/country/indonesia" target="_blank" rel="noopener">ArusGrid</a> (CC BY-NC 4.0), serta berita dan rilis DatacenterDynamics, Telkom, DCI Indonesia, ANTARA, dan operator terkait. Negara lain, plus investor, klien, sinyal AI, capex, dan biaya listrik untuk proyek besar Indonesia: file data proyek regional (334 baris, dicek Juli–September 2026). Tier, rincian MW, dan 54 fasilitas tambahan Indonesia dari tabel Indonesia Maps &amp; Globe (no. 1–183); bila tahapnya berbeda dengan sumber lain, perbedaannya dicatat di popup. Data diperbarui 2 Oktober 2026; status bisa berubah setelahnya.</p>
+      </section>
+    </div>
+  </aside>
+
+  <main class="mapwrap">
+    <div id="map" role="region" aria-label="Peta data center Asia Tenggara"></div>
+    <nav class="views" aria-label="Lompat ke wilayah" id="views"></nav>
+    <details class="legend" id="legend" open>
+      <summary>Legenda</summary>
+      <div class="lg-body">
+        <div class="lg-row">
+          <span><i class="g g-op s2"></i>Operasional</span>
+          <span><i class="g g-uc s2"></i>Konstruksi</span>
+          <span><i class="g g-pl s2"></i>Perencanaan</span>
+        </div>
+        <div class="lg-row"><span><i class="g g-op s2 eks"></i>Beroperasi, ekspansi berjalan</span></div>
+        <div class="lg-row lg-sizes"><span><i class="g s1"></i>&lt; 20 MW</span><span><i class="g s2"></i>20–99 MW</span><span><i class="g s3"></i>≥ 100 MW</span></div>
+        <div class="lg-row"><span><i class="lg-cl"></i>Klaster: angka = jumlah fasilitas, cincin = komposisi status</span></div>
+        <div class="attrib" id="attrib">Memuat garis pantai…</div>
+      </div>
+    </details>
+    <div class="map-msg" id="mapmsg" hidden></div>
+  </main>
+</div>
+
+<script type="application/json" id="dc-data">__DATA__</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet.markercluster/1.5.3/leaflet.markercluster.js"></script>
+<script>
+(function(){
+  "use strict";
+  var D = JSON.parse(document.getElementById("dc-data").textContent);
+  var ROWS = D.rows, AREAS = D.areas, SRC = D.src, ISO = D.neg_iso, ARUS = D.arus;
+  var NEG_ORDER = ["Indonesia","Malaysia","Singapura","Thailand","Vietnam","Filipina","India","Arab Saudi","Uni Emirat Arab","Qatar","Bahrain"];
+  var SEA = {"Indonesia":1,"Malaysia":1,"Singapura":1,"Thailand":1,"Vietnam":1,"Filipina":1};
+  var ID_ORDER = ["jkt","bks","krw","tng","bgr","btm","sby","bdg","jtg","bal","sum","kal","tim"];
+  var LABEL = {op:"Operasional", uc:"Konstruksi", pl:"Perencanaan"};
+  var SORDER = {op:0, uc:1, pl:2};
+  var SIZE = {1:10, 2:14, 3:20};
+  var BULAN = ["Jan","Feb","Mar","Apr","Mei","Jun","Jul","Agu","Sep","Okt","Nov","Des"];
+  var reduced = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  var byId = {};
+
+  function esc(s){ return String(s == null ? "" : s).replace(/[&<>"']/g, function(c){ return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]; }); }
+  function norm(s){ return String(s).toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, ""); }
+  function fmt(n){ return n == null ? "" : Number(n).toLocaleString("id-ID", {maximumFractionDigits: 2}); }
+  function fmtInt(n){ return Math.round(n).toLocaleString("id-ID"); }
+  function tier(r){ return r.mw >= 100 ? 3 : (r.mw >= 20 ? 2 : 1); }
+  function glyph(r, forceSize){ return '<i class="g g-' + r.status + ' s' + (forceSize || tier(r)) + (r.eks ? " eks" : "") + '" aria-hidden="true"></i>'; }
+  function isNarrow(){ return window.matchMedia("(max-width: 860px)").matches; }
+  function tgl(s){ if (!s) return ""; var p = s.split("-"); return +p[2] + " " + BULAN[+p[1] - 1] + " " + p[0]; }
+  function usd(m){ return m >= 1000 ? "US$" + fmt(Math.round(m / 100) / 10) + " miliar" : "US$" + fmt(m) + " juta"; }
+  function aiOn(r){ return r.ai === "Terkonfirmasi" || r.ai === "Kemungkinan"; }
+
+  ROWS.forEach(function(r){
+    byId[r.id] = r;
+    var a = AREAS[r.area];
+    r._q = norm([r.nama, r.operator, r.kota, r.kawasan, r.prov, r.neg, a.nama, a.kode, r.tipe, r.tahap, r.pendana || "", r.klien || "", r.tierdc || "", r.alias || ""].join(" "));
+    r._band = r.status === "pl" ? ((r.tahap === "Lahan & perizinan" || r.tahap === "Pendanaan tuntas") ? "lp" : "an") : r.status;
+    r._tiers = String(r.tierdc || "").match(/[1-4]/g) || [];
+    r._ai = (r.ai && r.ai !== "Belum ada sinyal") ? r.ai : "none";
+  });
+
+  var BANDS = ["an", "lp", "uc", "op"];
+  var BLABEL = {an: "Diumumkan", lp: "Lahan & perizinan", uc: "Konstruksi", op: "Beroperasi"};
+  var FKEYS = ["neg", "area", "tipe", "tier", "ai"];
+  function freshState(){ return {s: {an: true, lp: true, uc: true, op: true}, q: "", neg: [], area: [], tipe: [], tier: [], ai: []}; }
+  var state = freshState();
+  function matchVal(r, k, v){
+    if (k === "tier") return v === "none" ? !r._tiers.length : r._tiers.indexOf(v) >= 0;
+    if (k === "neg") return r.neg === v;
+    if (k === "area") return r.area === v;
+    if (k === "tipe") return r.tipe === v;
+    return r._ai === v;
+  }
+  function passKey(r, k){
+    var sel = state[k];
+    if (!sel.length) return true;
+    for (var i = 0; i < sel.length; i++) if (matchVal(r, k, sel[i])) return true;
+    return false;
+  }
+  function passQ(r){
+    if (!state.q) return true;
+    var terms = norm(state.q).split(/\s+/).filter(Boolean);
+    for (var i = 0; i < terms.length; i++) if (r._q.indexOf(terms[i]) < 0) return false;
+    return true;
+  }
+  function passOther(r, skip){
+    for (var i = 0; i < FKEYS.length; i++) if (FKEYS[i] !== skip && !passKey(r, FKEYS[i])) return false;
+    return passQ(r);
+  }
+  function passAttr(r){ return passKey(r, "tipe") && passKey(r, "tier") && passKey(r, "ai") && passQ(r); }
+  function pass(r){ return state.s[r._band] && passOther(r); }
+  function opMW(r){ return r.run || 0; }
+  function planMW(r){ return r.status === "op" ? (r.mw != null ? r.mw : r.run) : r.mw; }
+  function fmtMW(v){
+    if (v >= 1000) return (v / 1000).toLocaleString("id-ID", {maximumFractionDigits: 1}) + " GW";
+    return v.toLocaleString("id-ID", {maximumFractionDigits: v < 10 ? 1 : 0}) + " MW";
+  }
+
+  function mwText(r){
+    if (r.status === "op"){
+      if (r.run != null && r.mw != null && r.run !== r.mw) return fmt(r.run) + " / " + fmt(r.mw) + " MW";
+      if (r.mw != null) return fmt(r.mw) + " MW";
+      if (r.run != null) return fmt(r.run) + " MW";
+      return "";
+    }
+    return r.mw != null ? fmt(r.mw) + " MW" : "";
+  }
+  function capText(r){
+    if (r.status === "op"){
+      if (r.run != null && r.mw != null && r.run !== r.mw) return fmt(r.run) + " MW berjalan dari rencana " + fmt(r.mw) + " MW";
+      if (r.mw != null) return fmt(r.mw) + " MW" + (r.eks ? " (rencana total)" : "");
+      if (r.run != null) return fmt(r.run) + " MW berjalan";
+      return "Tidak diungkap";
+    }
+    return r.mw != null ? fmt(r.mw) + " MW (kapasitas proyek)" : "Tidak diungkap";
+  }
+
+  /* ---------- sorotan ---------- */
+  document.getElementById("n-total").textContent = ROWS.length.toLocaleString("id-ID");
+  var TIPE_OPT = [["Hyperscale", "Hyperscale & kampus besar"], ["Colocation", "Colocation"], ["Edge", "Edge"], ["Cloud", "Cloud (milik hyperscaler)"], ["Pemerintah", "Pemerintah"]];
+  var TIER_OPT = [["1", "Tier 1"], ["2", "Tier 2"], ["3", "Tier 3"], ["4", "Tier 4"], ["none", "Tier belum diketahui"]];
+  var AI_OPT = [["Terkonfirmasi", "AI terkonfirmasi"], ["Kemungkinan", "AI kemungkinan"], ["Kecil kemungkinan", "AI kecil kemungkinan"], ["none", "Belum ada sinyal AI"]];
+  function optList(k){ return k === "tipe" ? TIPE_OPT : (k === "tier" ? TIER_OPT : AI_OPT); }
+  function negNames(list){
+    var seaAll = NEG_ORDER.filter(function(n){ return SEA[n]; }), cmpAll = NEG_ORDER.filter(function(n){ return !SEA[n]; });
+    var has = function(n){ return list.indexOf(n) >= 0; }, out = [], skip = {};
+    if (seaAll.every(has)){ out.push("Asia Tenggara"); seaAll.forEach(function(n){ skip[n] = 1; }); }
+    if (cmpAll.every(has)){ out.push("India & Teluk"); cmpAll.forEach(function(n){ skip[n] = 1; }); }
+    NEG_ORDER.forEach(function(n){ if (has(n) && !skip[n]) out.push(n); });
+    return out;
+  }
+  function areaNames(list){
+    var out = [];
+    NEG_ORDER.forEach(function(n){
+      var all = areasOf(n), got = all.filter(function(ak){ return list.indexOf(ak) >= 0; });
+      if (!got.length) return;
+      if (got.length === all.length && all.length > 1) out.push(n + " (semua wilayah)");
+      else got.forEach(function(ak){ out.push(AREAS[ak].nama); });
+    });
+    return out;
+  }
+  function namesOf(k){
+    if (k === "neg") return negNames(state.neg);
+    if (k === "area") return areaNames(state.area);
+    return optList(k).filter(function(o){ return state[k].indexOf(o[0]) >= 0; }).map(function(o){ return o[1]; });
+  }
+  function joinNames(a){
+    if (a.length === 1) return a[0];
+    if (a.length <= 3) return a.slice(0, -1).join(", ") + " & " + a[a.length - 1];
+    return a.slice(0, 2).join(", ") + " & " + (a.length - 2) + " lainnya";
+  }
+  function renderHighlight(){
+    var s = {}, nVis = 0;
+    BANDS.forEach(function(b){ s[b] = {n: 0, sized: 0, mw: 0, run: 0, nrun: 0}; });
+    ROWS.forEach(function(r){
+      if (!passOther(r)) return;
+      var a = s[r._band], p = planMW(r);
+      a.n++;
+      if (p != null){ a.sized++; a.mw += p; }
+      if (r.status === "op" && r.run){ a.run += r.run; a.nrun++; }
+      if (state.s[r._band]) nVis++;
+    });
+    var total = 0, allOn = true, off = [];
+    BANDS.forEach(function(b){ if (state.s[b]) total += s[b].mw; else { allOn = false; off.push(BLABEL[b].toLowerCase()); } });
+    var geo = state.area.length ? namesOf("area") : namesOf("neg");
+    document.getElementById("hl-title").textContent = geo.length ? joinNames(geo) : "Semua negara & wilayah";
+    var sub = [nVis.toLocaleString("id-ID") + " fasilitas"];
+    if (state.area.length && state.neg.length) sub.push(joinNames(namesOf("neg")));
+    ["tipe", "tier", "ai"].forEach(function(k){ if (state[k].length) sub.push(namesOf(k).join(", ")); });
+    if (state.q) sub.push("kata kunci “" + state.q + "”");
+    if (off.length) sub.push("tanpa tahap " + joinNames(off));
+    document.getElementById("hl-sub").textContent = sub.join(" · ");
+    document.getElementById("hl-total").textContent = fmtMW(total);
+    document.getElementById("hl-unit").textContent = allOn ? "total kapasitas rencana (beban IT) di semua tahap" : "total kapasitas rencana (beban IT) di tahap yang ditampilkan";
+    BANDS.forEach(function(b){
+      var a = s[b], noun = b === "op" ? "fasilitas" : "proyek", seg = document.querySelector("#hl-bar .b-" + b);
+      seg.style.width = (total && state.s[b] ? a.mw / total * 100 : 0) + "%";
+      seg.hidden = !(total && state.s[b] && a.mw > 0);
+      document.getElementById("v-" + b).textContent = a.sized ? fmtMW(a.mw) : "–";
+      document.getElementById("n-" + b).textContent = a.n ? a.sized + " dari " + a.n + " " + noun + " mengungkap kapasitas" : "Tidak ada " + noun + " di pilihan ini";
+      var t = document.getElementById("t-" + b);
+      t.setAttribute("aria-pressed", state.s[b] ? "true" : "false");
+      t.title = (state.s[b] ? "Sembunyikan " : "Tampilkan ") + BLABEL[b].toLowerCase() + " di peta dan daftar";
+    });
+    var op = s.op, pct = op.mw ? Math.min(100, op.run / op.mw * 100) : 0;
+    document.getElementById("meter-op").style.width = pct + "%";
+    document.getElementById("run-op").textContent = op.n ? fmtMW(op.run) + " terkonfirmasi berjalan" + (op.mw ? " (" + Math.round(pct) + "%)" : "") : "";
+    renderShare(s);
+  }
+
+  /* porsi pilihan terhadap total nasional / kawasan */
+  function shareDenom(){
+    if (state.area.length){
+      var seen = {};
+      state.area.forEach(function(ak){ seen[AREAS[ak].neg] = 1; });
+      var negs = NEG_ORDER.filter(function(n){ return seen[n]; });
+      return {negs: negs, label: joinNames(negs)};
+    }
+    if (state.neg.length){
+      var seaAll = NEG_ORDER.filter(function(n){ return SEA[n]; });
+      if (state.neg.every(function(n){ return SEA[n]; }) && state.neg.length < seaAll.length) return {negs: seaAll, label: "Asia Tenggara"};
+      return {negs: NEG_ORDER.slice(), label: "semua pasar di peta"};
+    }
+    return null;
+  }
+  function pctTxt(a, b){ return b ? (a / b * 100).toLocaleString("id-ID", {minimumFractionDigits: 1, maximumFractionDigits: 1}) + "%" : "–"; }
+  function glyphB(b){ return '<i class="g ' + (b === "op" ? "g-op" : (b === "uc" ? "g-uc" : "g-pl")) + ' s1" aria-hidden="true"></i>'; }
+  function renderShare(s){
+    var den = shareDenom();
+    document.getElementById("sh").hidden = !den;
+    document.getElementById("sh-empty").hidden = !!den;
+    if (!den) return;
+    var d = {};
+    BANDS.forEach(function(b){ d[b] = {n: 0, mw: 0, run: 0, nrun: 0}; });
+    ROWS.forEach(function(r){
+      if (den.negs.indexOf(r.neg) < 0 || !passAttr(r)) return;
+      var a = d[r._band], p = planMW(r);
+      a.n++;
+      if (p != null) a.mw += p;
+      if (r.status === "op" && r.run){ a.run += r.run; a.nrun++; }
+    });
+    var attr = state.tipe.length || state.tier.length || state.ai.length || state.q;
+    document.getElementById("sh-h").textContent = "Porsi terhadap total " + den.label + (attr ? ", dengan filter tipe, tier, AI dan kata kunci yang sama" : "");
+    var live = document.getElementById("sh-live");
+    live.hidden = !state.s.op;
+    if (state.s.op){
+      document.getElementById("sh-live-pct").textContent = pctTxt(s.op.run, d.op.run);
+      document.getElementById("sh-live-txt").innerHTML = "<b>MW live</b> " + fmtMW(s.op.run) + " dari " + fmtMW(d.op.run) + " di " + esc(den.label);
+      document.getElementById("sh-live-bar").style.width = (d.op.run ? Math.min(100, s.op.run / d.op.run * 100) : 0) + "%";
+    }
+    var h = "", ts = 0, td = 0;
+    BANDS.forEach(function(b){
+      if (!state.s[b]) return;
+      ts += s[b].mw; td += d[b].mw;
+      h += "<tr><td>" + glyphB(b) + esc(BLABEL[b]) + "</td><td>" + fmtMW(s[b].mw) + "</td><td>" + fmtMW(d[b].mw) + "</td><td>" + pctTxt(s[b].mw, d[b].mw) + "</td></tr>";
+    });
+    if (h) h += '<tr class="tot"><td>Total tahap aktif</td><td>' + fmtMW(ts) + "</td><td>" + fmtMW(td) + "</td><td>" + pctTxt(ts, td) + "</td></tr>";
+    document.getElementById("sh-body").innerHTML = h || '<tr><td colspan="4">Tidak ada tahap yang aktif.</td></tr>';
+    document.getElementById("sh-note").textContent = state.s.op ?
+      "MW live hanya dihitung dari fasilitas yang mengungkap angkanya: " + s.op.nrun + " dari " + s.op.n + " fasilitas beroperasi di pilihan ini, dan " +
+      d.op.nrun + " dari " + d.op.n + " di " + den.label + ". Porsi sebenarnya bisa berbeda." :
+      "Kapasitas memakai angka yang diungkap tiap proyek; proyek tanpa angka tidak ikut terhitung.";
+  }
+  document.querySelectorAll(".tile").forEach(function(t){
+    t.addEventListener("click", function(){ var b = t.getAttribute("data-b"); state.s[b] = !state.s[b]; update(); });
+  });
+
+  /* ---------- country ledger ---------- */
+  var ctryBody = document.getElementById("ctry-body");
+  function renderCountries(){
+    var agg = {}, max = 0;
+    NEG_ORDER.forEach(function(n){ agg[n] = {n:0, op:0, uc:0, pl:0}; });
+    ROWS.forEach(function(r){
+      if (!passAttr(r)) return;
+      var a = agg[r.neg]; a.n++;
+      a[r.status] += r.status === "op" ? opMW(r) : (r.mw || 0);
+    });
+    NEG_ORDER.forEach(function(n){ var a = agg[n]; max = Math.max(max, a.op + a.uc + a.pl); });
+    var html = "";
+    NEG_ORDER.forEach(function(n, i){
+      var a = agg[n], on = state.neg.indexOf(n) >= 0;
+      function w(v){ return max ? (v / max * 100).toFixed(2) + "%" : "0"; }
+      html += '<tr class="crow' + (on ? " on" : "") + (n === "India" ? " cmp-first" : "") + '" data-neg="' + esc(n) + '" tabindex="0" aria-pressed="' + on + '" title="' + (on ? "Lepas " : "Tambahkan ") + esc(n) + (on ? " dari" : " ke") + ' filter">' +
+        '<td><div class="cname"><span class="iso">' + ISO[n] + '</span>' + esc(n) + '</div>' +
+        '<div class="cbar" aria-hidden="true"><span class="b-op" style="width:' + w(a.op) + '"></span><span class="b-uc" style="width:' + w(a.uc) +
+        '"></span><span class="b-pl" style="width:' + w(a.pl) + '"></span></div></td>' +
+        '<td>' + a.n + '</td><td>' + fmtInt(a.op) + '</td><td>' + fmtInt(a.uc) + '</td><td>' + fmtInt(a.pl) + '</td></tr>';
+    });
+    ctryBody.innerHTML = html;
+  }
+  function pickCountry(n){
+    var i = state.neg.indexOf(n);
+    if (i >= 0) state.neg.splice(i, 1); else state.neg.push(n);
+    onFilter("neg");
+  }
+  ctryBody.addEventListener("click", function(e){ var tr = e.target.closest(".crow"); if (tr) pickCountry(tr.getAttribute("data-neg")); });
+  ctryBody.addEventListener("keydown", function(e){
+    if (e.key !== "Enter" && e.key !== " ") return;
+    var tr = e.target.closest(".crow"); if (!tr) return;
+    e.preventDefault(); pickCountry(tr.getAttribute("data-neg"));
+  });
+
+  /* ---------- register ---------- */
+  var listEl = document.getElementById("list");
+  function areasOf(neg){
+    if (neg === "Indonesia") return ID_ORDER.slice();
+    var seen = {};
+    ROWS.forEach(function(r){ if (r.neg === neg) seen[r.area] = (seen[r.area] || 0) + 1; });
+    return Object.keys(seen).sort(function(a, b){ return seen[b] - seen[a]; });
+  }
+  function renderList(){
+    var vis = ROWS.filter(pass);
+    document.getElementById("rcount").textContent = vis.length.toLocaleString("id-ID") + " dari " + ROWS.length.toLocaleString("id-ID") + " fasilitas ditampilkan";
+    var filtered = !!state.q || FKEYS.some(function(k){ return state[k].length; }) || BANDS.some(function(b){ return !state.s[b]; });
+    document.getElementById("reset").hidden = !filtered;
+    if (!vis.length){
+      listEl.innerHTML = '<p class="empty">Tidak ada fasilitas yang cocok. Coba kata kunci lain atau hapus filter.</p>';
+      return;
+    }
+    var html = "";
+    NEG_ORDER.forEach(function(neg){
+      var nv = vis.filter(function(r){ return r.neg === neg; });
+      if (!nv.length) return;
+      html += '<section class="nat"><h2 class="nat-h">' + esc(neg) + '<span class="n">' + nv.length + ' fasilitas</span></h2>';
+      areasOf(neg).forEach(function(ak){
+        var items = nv.filter(function(r){ return r.area === ak; });
+        if (!items.length) return;
+        items.sort(function(a, b){
+          return (SORDER[a.status] - SORDER[b.status]) || ((b.mw || 0) - (a.mw || 0)) || a.nama.localeCompare(b.nama, "id");
+        });
+        var c = {op:0, uc:0, pl:0}; items.forEach(function(r){ c[r.status]++; });
+        var n = items.length, A = AREAS[ak];
+        html += '<div class="grp"><h3 class="grp-h"><span class="code">' + esc(A.kode) + '</span><span class="grp-n">' + esc(A.nama) +
+          '</span><span class="grp-c">' + n + '</span></h3><div class="mini" aria-hidden="true"><span style="width:' + (c.op / n * 100) +
+          '%"></span><span style="width:' + (c.uc / n * 100) + '%"></span><span style="width:' + (c.pl / n * 100) + '%"></span></div><ul>';
+        items.forEach(function(r){
+          var sub = r.operator + " · " + r.kawasan + (r.neg === "Indonesia" && r.kawasan !== r.kota ? ", " + r.kota : "");
+          if (r.tahap && r.tahap !== LABEL[r.status] && r.tahap !== "Beroperasi & ekspansi") sub += " · " + r.tahap;
+          html += '<li><button type="button" class="it" data-id="' + r.id + '" aria-label="' + esc(r.nama + ", " + LABEL[r.status] + ", " + r.kawasan + ", " + r.neg) + '">' +
+            glyph(r) + '<span class="it-t"><b>' + esc(r.nama) + (r.eks ? '<span class="tag tag-eks">ekspansi</span>' : "") +
+            (r.ai === "Terkonfirmasi" ? '<span class="tag tag-ai">AI</span>' : "") + '</b><small>' + esc(sub) + '</small></span><span class="it-mw">' + mwText(r) + '</span></button></li>';
+        });
+        html += "</ul></div>";
+      });
+      html += "</section>";
+    });
+    listEl.innerHTML = html;
+  }
+  listEl.addEventListener("click", function(e){
+    var b = e.target.closest(".it"); if (!b) return;
+    var prev = listEl.querySelector(".it.active"); if (prev) prev.classList.remove("active");
+    b.classList.add("active");
+    focusRow(b.getAttribute("data-id"));
+  });
+
+  /* ---------- extras ---------- */
+  (function(){
+    var u = "";
+    D.unlocated.forEach(function(r){
+      var s = r.src ? SRC[r.src] : null;
+      u += '<li><i class="g g-' + r.status + ' s1"></i><div><strong>' + esc(r.nama) + '</strong> <span style="color:var(--muted)">· Indonesia · ' + LABEL[r.status] +
+        (r.mw ? " · " + fmt(r.mw) + " MW" : "") + '</span><p>' + esc(r.note) + (s && s[1] ? ' <a href="' + s[1] + '" target="_blank" rel="noopener">Sumber</a>' : "") + '</p></div></li>';
+    });
+    document.getElementById("unloc").innerHTML = u;
+    var c = "";
+    D.cancelled.forEach(function(r){
+      var link = (r.src === "reg" || !SRC[r.src][1]) ? "" : ' <a href="' + SRC[r.src][1] + '" target="_blank" rel="noopener">Sumber</a>';
+      c += '<li><i class="g g-pl s1" style="opacity:.5"></i><div><strong>' + esc(r.nama) + '</strong> <span style="color:var(--muted)">· ' + esc(r.neg || "Indonesia") +
+        '</span><p>' + esc(r.note) + link + '</p></div></li>';
+    });
+    document.getElementById("cancel").innerHTML = c;
+  })();
+
+  /* ---------- filter pilihan ganda ---------- */
+  var qEl = document.getElementById("q");
+  var MS_CFG = {
+    neg: {label: "Negara", all: "Semua negara"},
+    area: {label: "Wilayah", all: "Semua wilayah", search: true},
+    tipe: {label: "Tipe", all: "Semua"},
+    tier: {label: "Tier", all: "Semua"},
+    ai: {label: "Sinyal AI", all: "Semua"}
+  };
+  function groupsFor(k){
+    if (k === "neg") return [
+      {g: "Asia Tenggara", items: NEG_ORDER.filter(function(n){ return SEA[n]; }).map(function(n){ return [n, n, ""]; })},
+      {g: "Pembanding: India & Teluk", items: NEG_ORDER.filter(function(n){ return !SEA[n]; }).map(function(n){ return [n, n, ""]; })}];
+    if (k === "area"){
+      var negs = state.neg.length ? NEG_ORDER.filter(function(n){ return state.neg.indexOf(n) >= 0; }) : NEG_ORDER;
+      return negs.map(function(n){ return {g: n, items: areasOf(n).map(function(ak){ return [ak, AREAS[ak].nama, AREAS[ak].kode]; })}; });
+    }
+    return [{g: null, items: optList(k).map(function(o){ return [o[0], o[1], ""]; })}];
+  }
+  function countFor(k, v){
+    var c = 0;
+    for (var i = 0; i < ROWS.length; i++){ var r = ROWS[i]; if (state.s[r._band] && matchVal(r, k, v) && passOther(r, k)) c++; }
+    return c;
+  }
+  function valText(k){
+    var a = namesOf(k);
+    if (!a.length) return MS_CFG[k].all;
+    if (a.length === 1) return a[0];
+    if (a.length === 2 && (a[0] + a[1]).length <= 20) return a[0] + ", " + a[1];
+    return a[0] + " +" + (a.length - 1);
+  }
+  var MS = {};
+  function buildMS(k){
+    var M = MS[k], h = "";
+    groupsFor(k).forEach(function(G, gi){
+      if (G.g) h += '<label class="ms-g"><input type="checkbox" data-g="' + gi + '"><span>' + esc(G.g) + '</span><span></span></label>';
+      G.items.forEach(function(it){
+        h += '<label class="ms-opt" data-g="' + gi + '" data-t="' + esc(norm(it[1] + " " + it[2] + " " + (G.g || ""))) + '">' +
+          '<input type="checkbox" value="' + esc(it[0]) + '" data-g="' + gi + '"><span class="ms-t">' + esc(it[1]) + '</span><span class="ms-n"></span></label>';
+      });
+    });
+    M.list.innerHTML = h;
+    if (M.q) M.q.value = "";
+  }
+  function syncMS(k){
+    var M = MS[k], sel = state[k];
+    if (!M.pop.hidden){
+      M.list.querySelectorAll("input[value]").forEach(function(i){
+        i.checked = sel.indexOf(i.value) >= 0;
+        var n = countFor(k, i.value), lab = i.parentNode;
+        lab.querySelector(".ms-n").textContent = n.toLocaleString("id-ID");
+        lab.classList.toggle("zero", !n && !i.checked);
+      });
+      M.list.querySelectorAll("input[data-g]:not([value])").forEach(function(g){
+        var items = M.list.querySelectorAll('input[value][data-g="' + g.getAttribute("data-g") + '"]'), on = 0;
+        items.forEach(function(i){ if (i.checked) on++; });
+        g.checked = on > 0 && on === items.length;
+        g.indeterminate = on > 0 && on < items.length;
+      });
+    }
+    var v = valText(k);
+    M.btn.querySelector(".ms-v").textContent = v;
+    M.btn.title = MS_CFG[k].label + ": " + (sel.length ? joinNames(namesOf(k)) : MS_CFG[k].all);
+    M.root.classList.toggle("on", sel.length > 0);
+  }
+  function syncAll(){ Object.keys(MS).forEach(syncMS); }
+  function filterOpts(M){
+    var q = norm(M.q.value.trim()), vis = {};
+    M.list.querySelectorAll(".ms-opt").forEach(function(l){
+      var ok = !q || l.getAttribute("data-t").indexOf(q) >= 0;
+      l.hidden = !ok; if (ok) vis[l.getAttribute("data-g")] = 1;
+    });
+    M.list.querySelectorAll(".ms-g").forEach(function(g){ g.hidden = !vis[g.querySelector("input").getAttribute("data-g")]; });
+  }
+  function openMS(k){
+    Object.keys(MS).forEach(function(o){ if (o !== k) closeMS(o, false); });
+    var M = MS[k];
+    buildMS(k);
+    M.pop.hidden = false; M.btn.setAttribute("aria-expanded", "true");
+    syncMS(k);
+    var f = M.q || M.list.querySelector("input");
+    if (f) f.focus({preventScroll: true});
+  }
+  function closeMS(k, focusBtn){
+    var M = MS[k]; if (M.pop.hidden) return;
+    M.pop.hidden = true; M.btn.setAttribute("aria-expanded", "false");
+    if (focusBtn) M.btn.focus();
+  }
+  Object.keys(MS_CFG).forEach(function(k){
+    var C = MS_CFG[k], root = document.querySelector('.ms[data-k="' + k + '"]');
+    root.innerHTML = '<button type="button" class="ms-btn" aria-haspopup="true" aria-expanded="false" aria-controls="ms-' + k + '">' +
+      '<span class="ms-k">' + C.label + '</span><span class="ms-v"></span>' +
+      '<svg class="ms-ch" viewBox="0 0 12 12" aria-hidden="true"><path d="M2.5 4.5 6 8l3.5-3.5"></path></svg></button>' +
+      '<div class="ms-pop" id="ms-' + k + '" role="group" aria-label="Pilih ' + C.label.toLowerCase() + ' (bisa lebih dari satu)" hidden>' +
+      (C.search ? '<input type="search" class="ms-q" placeholder="Cari ' + C.label.toLowerCase() + ' atau negara" aria-label="Cari ' + C.label.toLowerCase() + '" autocomplete="off">' : "") +
+      '<div class="ms-list"></div><div class="ms-foot"><button type="button" class="linkbtn ms-clear">Hapus pilihan</button>' +
+      '<button type="button" class="ms-done">Selesai</button></div></div>';
+    var M = {root: root, btn: root.querySelector(".ms-btn"), pop: root.querySelector(".ms-pop"), list: root.querySelector(".ms-list"), q: root.querySelector(".ms-q")};
+    MS[k] = M;
+    M.btn.addEventListener("click", function(){ if (M.pop.hidden) openMS(k); else closeMS(k, false); });
+    root.querySelector(".ms-done").addEventListener("click", function(){ closeMS(k, true); });
+    root.querySelector(".ms-clear").addEventListener("click", function(){ state[k] = []; onFilter(k); });
+    M.list.addEventListener("change", function(e){
+      var t = e.target; if (t.type !== "checkbox") return;
+      if (!t.hasAttribute("value")){
+        M.list.querySelectorAll('input[value][data-g="' + t.getAttribute("data-g") + '"]').forEach(function(i){ if (!i.parentNode.hidden) i.checked = t.checked; });
+      }
+      state[k] = Array.prototype.map.call(M.list.querySelectorAll("input[value]:checked"), function(i){ return i.value; });
+      onFilter(k);
+    });
+    if (M.q) M.q.addEventListener("input", function(){ filterOpts(M); });
+  });
+  document.addEventListener("click", function(e){ if (!e.target.closest(".ms")) Object.keys(MS).forEach(function(k){ closeMS(k, false); }); });
+  document.addEventListener("keydown", function(e){
+    if (e.key === "Escape") Object.keys(MS).forEach(function(k){ if (!MS[k].pop.hidden) closeMS(k, true); });
+  });
+
+  var fitTimer = null;
+  function scheduleFit(){
+    clearTimeout(fitTimer);
+    fitTimer = setTimeout(function(){ if (state.neg.length || state.area.length) fitVisible(); else goView("sea"); }, 350);
+  }
+  function onFilter(k){
+    if (k === "neg" && state.neg.length){
+      var ok = {};
+      state.neg.forEach(function(n){ areasOf(n).forEach(function(ak){ ok[ak] = 1; }); });
+      state.area = state.area.filter(function(ak){ return ok[ak]; });
+    }
+    update();
+    if (k === "neg" || k === "area") scheduleFit();
+  }
+
+  var qTimer = null;
+  qEl.addEventListener("input", function(){ clearTimeout(qTimer); qTimer = setTimeout(function(){ state.q = qEl.value.trim(); update(); }, 120); });
+  document.getElementById("reset").addEventListener("click", function(){
+    state = freshState(); qEl.value = ""; update(); goView("sea");
+  });
+
+  function update(){ renderHighlight(); renderCountries(); renderList(); updateMap(); syncAll(); }
+
+  /* ---------- map ---------- */
+  var map = null, cluster = null, markers = {};
+  var VIEWS = [
+    {k:"sea", t:"Asia Tenggara", b:[[-11.5, 93.0],[22.5, 141.5]]},
+    {k:"id", t:"Indonesia", b:[[-11.2, 94.6],[6.4, 141.2]]},
+    {k:"cgk", t:"Jabodetabek", b:[[-6.62, 106.6],[-6.12, 107.43]]},
+    {k:"cbd", t:"Jakarta pusat", b:[[-6.30, 106.77],[-6.17, 106.88]]},
+    {k:"sijori", t:"Johor–Singapura–Batam", b:[[0.98, 103.35],[1.85, 104.35]]},
+    {k:"kul", t:"Kuala Lumpur", b:[[2.45, 101.3],[3.45, 101.95]]},
+    {k:"bkk", t:"Bangkok–EEC", b:[[12.6, 100.3],[14.3, 101.5]]},
+    {k:"vn", t:"Vietnam", b:[[10.4, 105.2],[21.4, 108.6]]},
+    {k:"mnl", t:"Manila", b:[[13.9, 120.4],[15.35, 121.4]]},
+    {k:"ind", t:"India", b:[[8.0, 68.0],[31.5, 89.5]]},
+    {k:"cmp", t:"India & Teluk", b:[[8.0, 34.0],[31.5, 89.5]]},
+    {k:"gulf", t:"Teluk", b:[[23.0, 34.5],[29.8, 56.8]]}
+  ];
+  var viewsEl = document.getElementById("views");
+  VIEWS.forEach(function(v){
+    if (v.k === "cmp") return;
+    var b = document.createElement("button"); b.type = "button"; b.textContent = v.t; b.setAttribute("data-k", v.k);
+    b.addEventListener("click", function(){ goView(v.k); });
+    viewsEl.appendChild(b);
+  });
+  function markView(k){ viewsEl.querySelectorAll("button").forEach(function(b){ b.setAttribute("aria-current", b.getAttribute("data-k") === k ? "true" : "false"); }); }
+  function goView(k){
+    markView(k);
+    if (!map) return;
+    var v = VIEWS.filter(function(x){ return x.k === k; })[0];
+    map.flyToBounds(v.b, {padding: [16, 16], animate: !reduced, duration: 0.8});
+  }
+  function fitVisible(){
+    if (!map) return;
+    var pts = ROWS.filter(pass).map(function(r){ return [r.lat, r.lng]; });
+    if (!pts.length) return;
+    markView(null);
+    var b = L.latLngBounds(pts);
+    map.flyToBounds(b.pad(0.12), {padding: [24, 24], maxZoom: 13, animate: !reduced, duration: 0.8});
+  }
+
+  function dlRow(k, v){ return '<div><dt>' + k + '</dt><dd>' + v + '</dd></div>'; }
+  function popupHtml(r){
+    var A = AREAS[r.area], rows = "";
+    rows += dlRow("Lokasi", esc(r.kawasan) + (r.kota && r.kota !== r.kawasan ? ", " + esc(r.kota) : "") + (r.prov ? ", " + esc(r.prov) : "") + ", " + esc(r.neg));
+    rows += dlRow("Tahap", esc(r.tahap));
+    rows += dlRow("Kapasitas", capText(r));
+    if (r.mwket) rows += dlRow("Rincian MW", esc(r.mwket));
+    if (r.tierdc) rows += dlRow("Tier", esc(r.tierdc));
+    rows += dlRow("Tipe", esc(r.tipe) + (r.model && r.model !== r.tipe ? " · " + esc(r.model) : "") + ' · <span class="code">' + esc(A.kode) + '</span> ' + esc(A.nama));
+    if (r.ai && r.ai !== "Belum ada sinyal") rows += dlRow("Sinyal AI", esc(r.ai));
+    if (r.pendana) rows += dlRow("Pendana", esc(r.pendana));
+    if (r.klien) rows += dlRow("Klien", esc(r.klien));
+    if (r.capex) rows += dlRow("Capex", usd(r.capex));
+    if (r.listrik) rows += dlRow("Listrik", "≈ US$" + fmt(r.listrik) + " juta/tahun" + (r.kwh ? " (tarif US$" + fmt(r.kwh) + "/kWh)" : ""));
+    if (r.bukti) rows += dlRow("Bukti", esc(r.bukti));
+    if (r.alias) rows += dlRow("Nama lain", esc(r.alias));
+    var foot = "Titik perkiraan tingkat " + (r.presisi === "kota" ? "kota" : (r.presisi === "pasar" ? "pasar" : "kawasan"));
+    if (r.src === "reg"){
+      foot += " · Data regional, dicek " + tgl(r.cek) + ' · <a href="https://arusgrid.com/country/' + ARUS[r.neg] + '.html" target="_blank" rel="noopener">ArusGrid ' + esc(r.neg) + "</a>";
+    } else {
+      var s = SRC[r.src];
+      foot += " · " + (s[1] ? '<a href="' + s[1] + '" target="_blank" rel="noopener">' + esc(s[0]) + "</a>" : esc(s[0])) + (r.cek ? " · Detail investor dari data regional, dicek " + tgl(r.cek) : "");
+    }
+    if (r.mg && r.src !== "mg") foot += " · Juga tercatat di tabel Maps &amp; Globe no. " + esc(r.mg);
+    return '<div class="pop"><div class="pop-st pop-' + r.status + '">' + glyph(r, 1) + LABEL[r.status] + (r.eks ? " · ekspansi berjalan" : "") + '</div>' +
+      '<h3>' + esc(r.nama) + '</h3><p class="pop-opr">' + esc(r.operator) + '</p><dl>' + rows + '</dl>' +
+      (r.note ? '<p class="pop-note">' + esc(r.note) + '</p>' : "") + '<p class="pop-foot">' + foot + '</p></div>';
+  }
+
+  function updateMap(){
+    if (!cluster) return;
+    cluster.clearLayers();
+    var layers = ROWS.filter(pass).map(function(r){ return markers[r.id]; });
+    if (cluster.addLayers) cluster.addLayers(layers); else layers.forEach(function(m){ cluster.addLayer(m); });
+  }
+
+  function focusRow(id){
+    var r = byId[id], m = markers[id];
+    if (!map || !m) return;
+    if (isNarrow()) document.querySelector(".mapwrap").scrollIntoView({behavior: reduced ? "auto" : "smooth", block: "start"});
+    markView(null);
+    if (cluster && cluster.zoomToShowLayer){
+      if (map.getZoom() < 11) map.setView([r.lat, r.lng], 11, {animate: false});
+      cluster.zoomToShowLayer(m, function(){ m.openPopup(); });
+    } else {
+      map.setView([r.lat, r.lng], 14); m.openPopup();
+    }
+  }
+
+  function showMsg(t){ var el = document.getElementById("mapmsg"); el.textContent = t; el.hidden = false; }
+
+  function setBand(){
+    var z = map.getZoom();
+    var zb = z < 6 ? "0" : (z < 8 ? "1" : (z < 10.5 ? "2" : "3"));
+    map.getContainer().setAttribute("data-zb", zb);
+  }
+
+  var ISLANDS = [["SUMATRA", -0.6, 101.6], ["JAWA", -7.55, 110.3], ["KALIMANTAN", 0.6, 114.2], ["SULAWESI", -2.1, 120.6],
+    ["MALUKU", -3.2, 129.4], ["PAPUA", -4.4, 138.4], ["NUSA TENGGARA", -9.35, 120.6],
+    ["MALAYSIA", 4.4, 102.2], ["THAILAND", 15.6, 101.0], ["VIETNAM", 13.6, 108.3], ["FILIPINA", 12.4, 122.6],
+    ["INDIA", 22.5, 78.5], ["ARAB SAUDI", 23.8, 44.5], ["MYANMAR", 20.5, 96.0], ["KAMBOJA", 12.6, 104.9], ["LAOS", 19.3, 102.6]];
+  var CITIES = [["Jakarta", -6.16, 106.83], ["Bandung", -6.92, 107.61], ["Surabaya", -7.26, 112.75], ["Semarang", -6.99, 110.42],
+    ["Yogyakarta", -7.80, 110.37], ["Solo", -7.57, 110.82], ["Batam", 1.13, 104.05], ["Medan", 3.59, 98.67], ["Pekanbaru", 0.51, 101.45],
+    ["Palembang", -2.98, 104.75], ["Jambi", -1.61, 103.61], ["Padang", -0.95, 100.36], ["Banda Aceh", 5.55, 95.32],
+    ["Bandar Lampung", -5.43, 105.26], ["Denpasar", -8.65, 115.22], ["Mataram", -8.58, 116.11], ["Kupang", -10.17, 123.61],
+    ["Makassar", -5.15, 119.43], ["Manado", 1.49, 124.84], ["Balikpapan", -1.24, 116.85], ["Banjarmasin", -3.32, 114.59],
+    ["Pontianak", -0.03, 109.33], ["IKN Nusantara", -0.97, 116.70], ["Ambon", -3.70, 128.18], ["Manokwari", -0.86, 134.06],
+    ["Karawang", -6.31, 107.30], ["Cirebon", -6.71, 108.56], ["Malang", -7.98, 112.63], ["Bintan", 1.07, 104.45],
+    ["Singapura", 1.29, 103.85], ["Johor Bahru", 1.49, 103.74], ["Kuala Lumpur", 3.14, 101.69], ["Penang", 5.41, 100.33],
+    ["Melaka", 2.19, 102.25], ["Kuching", 1.55, 110.35], ["Bangkok", 13.75, 100.50], ["Chonburi", 13.36, 100.98],
+    ["Rayong", 12.68, 101.27], ["Ho Chi Minh City", 10.78, 106.70], ["Hanoi", 21.03, 105.85], ["Da Nang", 16.05, 108.21],
+    ["Manila", 14.60, 120.98], ["Clark", 15.18, 120.55], ["Mumbai", 19.07, 72.88], ["Chennai", 13.08, 80.27],
+    ["Hyderabad", 17.39, 78.49], ["Delhi", 28.61, 77.21], ["Bengaluru", 12.97, 77.59], ["Kolkata", 22.57, 88.36],
+    ["Riyadh", 24.71, 46.68], ["Dammam", 26.42, 50.09], ["NEOM", 27.55, 35.55], ["Dubai", 25.20, 55.27],
+    ["Abu Dhabi", 24.45, 54.38], ["Doha", 25.29, 51.53], ["Manama", 26.22, 50.59]];
+  var KAWASAN = [["Kuningan · Cyber/TIFA", -6.2375, 106.8250], ["SCBD", -6.2262, 106.8090], ["TB Simatupang", -6.2915, 106.7990],
+    ["Daan Mogot", -6.1530, 106.7058], ["MM2100 Cibitung", -6.2890, 107.0965], ["GIIC Deltamas", -6.3600, 107.1660],
+    ["Lippo Cikarang", -6.3342, 107.1385], ["Jababeka", -6.2985, 107.1675], ["KIIC", -6.3620, 107.2860], ["Suryacipta", -6.4160, 107.3090],
+    ["Jatiluhur", -6.5370, 107.3920], ["BSD · Serpong", -6.3080, 106.6700], ["Bintaro", -6.2775, 106.7235], ["Alam Sutera", -6.2420, 106.6550],
+    ["Sentul", -6.5990, 106.8950], ["Cimanggis", -6.3760, 106.8930], ["Citeureup", -6.4960, 106.8720], ["Kota Bogor", -6.5960, 106.8050],
+    ["Nongsa Digital Park", 1.1870, 104.1110], ["Kabil", 1.0920, 104.1320], ["Batam Centre", 1.1270, 104.0530], ["Tanjung Bemban", 1.1435, 104.1218],
+    ["Rungkut", -7.3330, 112.7600], ["Pertiwi Lestari", -6.3350, 107.2450], ["Mega Kuningan", -6.2280, 106.8285], ["Pulogadung", -6.1965, 106.9055],
+    ["Sedenak Tech Park", 1.6650, 103.5550], ["Nusajaya Tech Park", 1.4150, 103.5850], ["Kempas", 1.5400, 103.7150], ["Bandar Cemerlang", 1.6000, 103.8500],
+    ["Cyberjaya", 2.9200, 101.6550], ["Bukit Jalil", 3.0580, 101.6900], ["Elmina", 3.1650, 101.5000], ["Loyang", 1.3750, 103.9750],
+    ["Jurong", 1.3300, 103.7100], ["Pulau Jurong", 1.2650, 103.6900], ["Woodlands", 1.4450, 103.7900], ["Tuas", 1.3200, 103.6450],
+    ["Amata City", 13.4300, 101.0000], ["Bangna", 13.6600, 100.6600], ["Nava Nakorn", 14.1100, 100.6100], ["Navi Mumbai", 19.0500, 73.0300],
+    ["Siruseri", 12.8300, 80.2200], ["Ambattur", 13.1100, 80.1600], ["Noida", 28.5700, 77.3400], ["Hoa Lac", 21.0100, 105.5300]];
+
+  function addLabels(){
+    function lbl(list, cls){
+      list.forEach(function(x){
+        L.marker([x[1], x[2]], {pane: "labels", interactive: false, keyboard: false,
+          icon: L.divIcon({className: "lbl " + cls, html: "<span>" + esc(x[0]) + "</span>", iconSize: [0, 0]})}).addTo(map);
+      });
+    }
+    lbl(ISLANDS, "lbl-island"); lbl(CITIES, "lbl-city"); lbl(KAWASAN, "lbl-kaw");
+  }
+
+  function loadScript(src){
+    return new Promise(function(res, rej){
+      var s = document.createElement("script"); s.src = src; s.async = true;
+      s.onload = function(){ res(); }; s.onerror = function(){ rej(new Error(src)); };
+      document.head.appendChild(s);
+    });
+  }
+  function loadFirst(urls){
+    var i = 0;
+    function next(){ if (i >= urls.length) return Promise.reject(new Error("none")); return loadScript(urls[i++]).catch(next); }
+    return next();
+  }
+  function decodeEcharts(json){
+    if (!json.UTF8Encoding) return json;
+    var scale = json.UTF8Scale == null ? 1024 : json.UTF8Scale;
+    function ring(str, off){
+      var out = [], px = off[0], py = off[1];
+      for (var i = 0; i < str.length; i += 2){
+        var x = str.charCodeAt(i) - 64, y = str.charCodeAt(i + 1) - 64;
+        x = (x >> 1) ^ (-(x & 1)); y = (y >> 1) ^ (-(y & 1));
+        x += px; y += py; px = x; py = y;
+        out.push([x / scale, y / scale]);
+      }
+      return out;
+    }
+    json.features.forEach(function(f){
+      var g = f.geometry, c = g.coordinates, o = g.encodeOffsets;
+      if (g.type === "Polygon") for (var a = 0; a < c.length; a++) c[a] = ring(c[a], o[a]);
+      else if (g.type === "MultiPolygon") for (var p = 0; p < c.length; p++) for (var q = 0; q < c[p].length; q++) c[p][q] = ring(c[p][q], o[p][q]);
+    });
+    json.UTF8Encoding = false;
+    return json;
+  }
+  function loadLand(){
+    return loadFirst(["https://cdnjs.cloudflare.com/ajax/libs/topojson/3.0.2/topojson.min.js",
+                      "https://cdn.jsdelivr.net/npm/topojson-client@3.1.0/dist/topojson-client.min.js"])
+      .then(function(){ return loadScript("https://cdnjs.cloudflare.com/ajax/libs/datamaps/0.5.9/datamaps.world.hires.min.js"); })
+      .then(function(){
+        var topo = window.Datamap && window.Datamap.prototype && window.Datamap.prototype.worldTopo;
+        if (!topo || !topo.objects || !window.topojson) throw new Error("no topo");
+        var key = topo.objects.world ? "world" : Object.keys(topo.objects)[0];
+        var fc = window.topojson.feature(topo, topo.objects[key]);
+        if (!fc || !fc.features || !fc.features.length) throw new Error("empty");
+        return {fc: fc, label: "Natural Earth (via Datamaps)"};
+      })
+      .catch(function(){
+        if (!window.echarts) window.echarts = {registerMap: function(n, g){ window.__ecWorld = g; }};
+        return loadScript("https://cdn.jsdelivr.net/npm/echarts@4.9.0/map/js/world.js").then(function(){
+          if (!window.__ecWorld) throw new Error("no echarts world");
+          return {fc: decodeEcharts(window.__ecWorld), label: "peta dunia ECharts (Natural Earth, disederhanakan)"};
+        });
+      });
+  }
+  function inRegion(f){
+    var x0 = 1e9, y0 = 1e9, x1 = -1e9, y1 = -1e9;
+    (function walk(c){
+      if (typeof c[0] === "number"){ if (c[0] < x0) x0 = c[0]; if (c[0] > x1) x1 = c[0]; if (c[1] < y0) y0 = c[1]; if (c[1] > y1) y1 = c[1]; }
+      else for (var i = 0; i < c.length; i++) walk(c[i]);
+    })(f.geometry ? f.geometry.coordinates : []);
+    return x1 > 20 && x0 < 170 && y1 > -32 && y0 < 45;
+  }
+  function isIDN(f){ var p = f.properties || {}; return f.id === "IDN" || p.name === "Indonesia" || p.NAME === "Indonesia" || p.ADMIN === "Indonesia"; }
+  function drawGraticule(){
+    var lines = [];
+    for (var lat = -25; lat <= 40; lat += 5) lines.push([[lat, 25], [lat, 170]]);
+    for (var lng = 30; lng <= 165; lng += 5) lines.push([[-30, lng], [42, lng]]);
+    L.polyline(lines, {pane: "land", interactive: false, className: "grat", weight: 1}).addTo(map);
+  }
+
+  function initMap(){
+    if (!window.L){ showMsg("Peta tidak dapat dimuat di perangkat ini. Daftar fasilitas tetap lengkap di panel samping."); document.getElementById("attrib").textContent = ""; return; }
+    map = L.map("map", {zoomControl: false, attributionControl: false, minZoom: 3, maxZoom: 16, zoomSnap: 0.25, zoomDelta: 0.5,
+      maxBounds: [[-32, 20], [45, 172]], maxBoundsViscosity: 0.7, fadeAnimation: !reduced, zoomAnimation: !reduced, markerZoomAnimation: !reduced});
+    L.control.zoom({position: "topright", zoomInTitle: "Perbesar", zoomOutTitle: "Perkecil"}).addTo(map);
+    map.createPane("land"); map.getPane("land").style.zIndex = 250;
+    map.createPane("labels"); map.getPane("labels").style.zIndex = 450; map.getPane("labels").style.pointerEvents = "none";
+    map.fitBounds(VIEWS[0].b, {padding: [12, 12], animate: false});
+    markView("sea");
+
+    if (L.markerClusterGroup){
+      cluster = L.markerClusterGroup({
+        showCoverageOnHover: false, spiderfyOnMaxZoom: true, zoomToBoundsOnClick: true, removeOutsideVisibleBounds: true,
+        animate: !reduced,
+        maxClusterRadius: function(z){ return z >= 13 ? 26 : (z >= 10 ? 36 : 46); },
+        spiderLegPolylineOptions: {weight: 1.2, opacity: 0.9, className: "leg"},
+        iconCreateFunction: function(cl){
+          var ms = cl.getAllChildMarkers(), c = {op:0, uc:0, pl:0};
+          ms.forEach(function(m){ c[m.options.st]++; });
+          var n = ms.length, a = c.op / n * 100, b = (c.op + c.uc) / n * 100;
+          var size = n < 10 ? 30 : (n < 40 ? 38 : (n < 100 ? 46 : 54));
+          return L.divIcon({className: "clw", iconSize: [size, size],
+            html: '<div class="cl" style="--a:' + a.toFixed(1) + '%;--b:' + b.toFixed(1) + '%" title="' + n + " fasilitas: " + c.op + " operasional, " +
+              c.uc + " konstruksi, " + c.pl + ' perencanaan"><span>' + n + "</span></div>"});
+        }
+      });
+    } else {
+      cluster = L.layerGroup();
+    }
+    ROWS.forEach(function(r){
+      var s = SIZE[tier(r)];
+      var m = L.marker([r.lat, r.lng], {st: r.status, title: r.nama, riseOnHover: true,
+        icon: L.divIcon({className: "dc", html: glyph(r), iconSize: [s, s], popupAnchor: [0, -s / 2]})});
+      m.bindPopup(function(){ return popupHtml(r); }, {maxWidth: 320, minWidth: 240, autoPanPadding: [24, 70]});
+      markers[r.id] = m;
+    });
+    map.addLayer(cluster);
+    updateMap();
+    addLabels();
+    map.on("zoomend", setBand); setBand();
+    map.on("dragstart", function(){ markView(null); });
+
+    loadLand().then(function(res){
+      var fc = {type: "FeatureCollection", features: res.fc.features.filter(inRegion)};
+      L.geoJSON(fc, {pane: "land", interactive: false,
+        style: function(f){ return {className: isIDN(f) ? "land idn" : "land", weight: 0.7, fillOpacity: 1, opacity: 1}; }}).addTo(map);
+      document.getElementById("attrib").textContent = "Garis pantai: " + res.label + ". Skala kecil, jadi garis pantai di level kota hanya perkiraan.";
+    }).catch(function(){
+      drawGraticule();
+      document.getElementById("attrib").textContent = "Garis pantai tidak termuat; titik tetap ditempatkan sesuai koordinat (grid 5°).";
+    });
+
+    if (isNarrow()) document.getElementById("legend").open = false;
+  }
+
+  syncAll();
+  renderHighlight();
+  renderCountries();
+  renderList();
+  try { initMap(); } catch (e) { showMsg("Peta gagal dimuat. Daftar fasilitas tetap lengkap di panel samping."); }
+})();
+</script>
